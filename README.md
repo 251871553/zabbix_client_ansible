@@ -14,5 +14,5 @@ edit  hosts
 modify  ip  password
 
 
-start
+#start
 ansible-playbook zabbix_client.yml
