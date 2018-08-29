@@ -7,8 +7,8 @@ pip  install  ansible
 config
 edit zabbix_client.yml
 
-Server: 172.16.20.86             //zabbix_server_ip
-ServerActive: 172.16.20.86       //zabbix_server_ip 
+Server: 8.8.8.8             //zabbix_server_ip
+ServerActive: 8.8.8.8       //zabbix_server_ip 
 
 edit  hosts
 modify  ip  password
