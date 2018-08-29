@@ -1,7 +1,7 @@
 # zabbix_client_ansible
 Environmental requirements
 
-yum install  python-pip
+yum install  python-pip sshpass
 
 pip  install  ansible
 
