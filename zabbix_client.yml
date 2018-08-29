@@ -3,8 +3,8 @@
   #  gather_facts: no
   vars:
       zabbix_pkg: zabbix-3.0.17.tar.gz
-      Server: 172.16.20.86
-      ServerActive: 172.16.20.86
+      Server: 8.8.8.8
+      ServerActive: 8.8.8.8
   tasks:
     - name: test connection
       ping:
