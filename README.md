@@ -1,7 +1,9 @@
 # zabbix_client_ansible
 Environmental requirements
-yum install  python-pip
-pip  install  ansible
+
+1,yum install  python-pip
+
+2,pip  install  ansible
 
 
 config
