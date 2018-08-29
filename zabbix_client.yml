@@ -1,0 +1,82 @@
+---
+- hosts: zabbix_client
+  #  gather_facts: no
+  vars:
+      zabbix_pkg: zabbix-3.0.17.tar.gz
+      Server: 172.16.20.86
+      ServerActive: 172.16.20.86
+  tasks:
+    - name: test connection
+      ping:
+    - name: config selinux
+      selinux: state=disabled
+    - name: add   group  zabbix
+      user: name=zabbix state=present
+    - name: add   user  zabbix
+      user: name=zabbix groups=zabbix  state=present
+    - name: ensure gcc is at the latest version
+      yum: pkg=gcc state=latest
+                    #    - name: create  dir
+                    #      file: path=/app state=directory
+
+    - name: decompression
+      unarchive: src={{zabbix_pkg}} dest=/usr/local/src creates=/usr/local/src/zabbix-3.0.17
+      # unarchive: src={{zabbix_pkg}} dest=/usr/local/src owner=zabbix group=zabbix
+      # creates：指定一个文件名，当该文件存在时，则解压指令不执行
+      #  - name: create link
+      #   file: src=/usr/local/zabbix-3.0.17 dest=/usr/local/zabbix    owner=zabbix group=zabbix  state=link
+      # creates：指定一个文件名，当该文件存在时，则解压指令不执行
+
+
+    - name: configure  zabbix
+      shell: 'cd /usr/local/src/zabbix-3.0.17;./configure --prefix=/usr/local/zabbix  --enable-agent'
+
+    - name: make install  zabbix
+      shell: 'cd /usr/local/src/zabbix-3.0.17;make install'
+
+      #  - name: start  docker
+      #   service: name=docker state=started
+
+    - name: modify zabbix_agentd.conf   common server
+      lineinfile: dest=/usr/local/zabbix/etc/zabbix_agentd.conf
+                  regexp='^Server=.*$'
+                  line='Server={{Server}}'
+
+    - name: modify zabbix_agentd.conf   common serveractive
+      lineinfile: dest=/usr/local/zabbix/etc/zabbix_agentd.conf
+                  regexp='^ServerActive=.*$'
+                  line='ServerActive={{ServerActive}}'
+
+    - name: modify zabbix_agentd.conf   common hostname
+      lineinfile: dest=/usr/local/zabbix/etc/zabbix_agentd.conf
+                  regexp='^Hostname=.*$'
+                  line='Hostname={{ansible_fqdn}}'
+
+    - name: modify zabbix_agentd.conf   Special zabbix_agentd.conf.d
+      lineinfile: dest=/usr/local/zabbix/etc/zabbix_agentd.conf
+                  regexp='^Include=.*$'
+                  insertafter='^# Include=.*$'
+                  line='Include=/usr/local/zabbix/etc/zabbix_agentd.conf.d/*.conf'
+
+    - name: modify zabbix_agentd.conf   Special UnsafeUserParameters
+      lineinfile: dest=/usr/local/zabbix/etc/zabbix_agentd.conf
+                  regexp='^UnsafeUserParameters=.*$'
+                  insertafter='^# UnsafeUserParameters=.*$'
+                  line='UnsafeUserParameters=1'
+
+    - name: change authority
+      file: path=/usr/local/zabbix owner=zabbix group=zabbix      recurse=yes
+
+    - name: cp  init.d
+      copy: src=/usr/local/src/zabbix-3.0.17/misc/init.d/fedora/core/zabbix_agentd remote_src=yes dest=/etc/init.d/zabbix_agentd mode=+x
+
+    - name: edit  zabbix_agentd
+      shell: sed  -i  s#'BASEDIR=.*$'#'BASEDIR=/usr/local/zabbix'#g  /etc/init.d/zabbix_agentd
+
+      #centos6
+    #- name: Enable service agentd, and not touch the running state
+    #  service: name=zabbix_agentd enabled=yes state=started
+      #centos7
+    - name: Enable service agentd, and not touch the running state
+      #systemd: name=zabbix_agentd enabled=yes state=started
+      systemd: name=zabbix_agentd enabled=yes daemon_reload=yes state=started
