@@ -19,4 +19,5 @@ modify  ip  password
 
 
  #start
+ 
 ansible-playbook zabbix_client.yml   
